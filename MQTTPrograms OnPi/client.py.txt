@@ -1,0 +1,31 @@
+import paho.mqtt.client as mqtt
+import serial
+
+def on_connect(client, userdata, flags, rc): #func for making connnection
+	print(f"Connected to MQTT Server {ADD} at port{PORT}")
+	print("Connection returned result: " + str(rc) )
+	topic = "ifn649"
+	client.subscribe(topic)
+	print(f"Subscribed to topic: {topic}")
+	
+def on_message(client, userdata, msg): 		#func for sending msg
+	print("Recieved msg!")
+	print(msg.topic+" "+str(msg.payload))
+	print("Relaying to teensy over BT>>")
+	
+	#code from bt.py
+	# relay command from pi to teensy
+	#connect pi with teensy over bt first
+	ser = serial.Serial("/dev/rfcomm0", 9600)
+	ser.write(msg.payload)
+
+ADD = "13.55.77.103"
+PORT = 1883
+	
+client = mqtt.Client()
+client.on_connect=on_connect
+client.on_message=on_message
+
+client.connect(ADD, PORT, 60)
+
+client.loop_forever()
